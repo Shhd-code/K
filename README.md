@@ -1,1 +1,695 @@
-# K
+--[[
+    K4 Hub - Roblox UI Script
+    Tabs: نسخ (Copy) | تحكم (Control)
+]]
+
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- helper: choose best parent for executor GUIs (Delta/Synapse/etc)
+local function getGuiParent()
+    local ok, hidden = pcall(function() return gethui() end)
+    if ok and hidden then return hidden end
+    local ok2, cg = pcall(function() return CoreGui end)
+    if ok2 and cg then return cg end
+    return PlayerGui
+end
+local guiParent = getGuiParent()
+
+-- cleanup old
+pcall(function()
+    for _, n in ipairs({"K4Hub","K4Mini","K4Splash"}) do
+        local old = guiParent:FindFirstChild(n)
+        if old then old:Destroy() end
+        local old2 = PlayerGui:FindFirstChild(n)
+        if old2 then old2:Destroy() end
+    end
+end)
+
+----------------------------------------------------------------
+-- Loading splash (non-blocking)
+----------------------------------------------------------------
+local function runSplash()
+    local splash = Instance.new("ScreenGui")
+    splash.Name = "K4Splash"; splash.ResetOnSpawn = false; splash.IgnoreGuiInset = true
+    splash.DisplayOrder = 9999; splash.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    pcall(function() splash.Parent = guiParent end)
+    if not splash.Parent then splash.Parent = PlayerGui end
+
+    local splashFrame = Instance.new("Frame", splash)
+    splashFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    splashFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    splashFrame.Size = UDim2.new(0, 360, 0, 140)
+    splashFrame.BackgroundColor3 = Color3.fromRGB(8, 18, 10)
+    splashFrame.BackgroundTransparency = 0.15
+    splashFrame.BorderSizePixel = 0
+    Instance.new("UICorner", splashFrame).CornerRadius = UDim.new(0, 14)
+    local sStroke = Instance.new("UIStroke", splashFrame)
+    sStroke.Color = Color3.fromRGB(0, 255, 120); sStroke.Thickness = 1.4; sStroke.Transparency = 0.2
+
+    local sName = Instance.new("TextLabel", splashFrame)
+    sName.BackgroundTransparency = 1
+    sName.Position = UDim2.new(0, 0, 0, 22); sName.Size = UDim2.new(1, 0, 0, 44)
+    sName.Font = Enum.Font.GothamBlack; sName.Text = "K4"
+    sName.TextSize = 32; sName.TextColor3 = Color3.fromRGB(0, 255, 130)
+
+    local sStatus = Instance.new("TextLabel", splashFrame)
+    sStatus.BackgroundTransparency = 1
+    sStatus.Position = UDim2.new(0, 0, 0, 78); sStatus.Size = UDim2.new(1, 0, 0, 28)
+    sStatus.Font = Enum.Font.GothamSemibold; sStatus.Text = "جاري التشغيل..."
+    sStatus.TextSize = 18; sStatus.TextColor3 = Color3.fromRGB(180, 255, 200)
+
+    for i = 1, 3 do
+        if not splash.Parent then break end
+        pcall(function() TweenService:Create(sStroke, TweenInfo.new(0.35), {Transparency = 0.7}):Play() end)
+        task.wait(0.35)
+        pcall(function() TweenService:Create(sStroke, TweenInfo.new(0.35), {Transparency = 0.1}):Play() end)
+        task.wait(0.35)
+    end
+    pcall(function() TweenService:Create(splashFrame, TweenInfo.new(0.4), {BackgroundTransparency = 1}):Play() end)
+    pcall(function() TweenService:Create(sName, TweenInfo.new(0.4), {TextTransparency = 1}):Play() end)
+    pcall(function() TweenService:Create(sStatus, TweenInfo.new(0.4), {TextTransparency = 1}):Play() end)
+    pcall(function() TweenService:Create(sStroke, TweenInfo.new(0.4), {Transparency = 1}):Play() end)
+    task.wait(0.45)
+    pcall(function() splash:Destroy() end)
+end
+pcall(runSplash)
+
+----------------------------------------------------------------
+-- Main GUI
+----------------------------------------------------------------
+local gui = Instance.new("ScreenGui")
+gui.Name = "K4Hub"; gui.ResetOnSpawn = false; gui.IgnoreGuiInset = true
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling; gui.DisplayOrder = 9000
+pcall(function() gui.Parent = guiParent end)
+if not gui.Parent then gui.Parent = PlayerGui end
+
+local main = Instance.new("Frame", gui)
+main.Name = "Main"; main.AnchorPoint = Vector2.new(0.5, 0.5)
+main.Position = UDim2.new(0.5, 0, 0.5, 0); main.Size = UDim2.new(0, 520, 0, 360)
+main.BackgroundColor3 = Color3.fromRGB(6, 16, 9); main.BackgroundTransparency = 0.25
+main.BorderSizePixel = 0
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 14)
+local mStroke = Instance.new("UIStroke", main)
+mStroke.Color = Color3.fromRGB(0, 230, 110); mStroke.Thickness = 1.4; mStroke.Transparency = 0.25
+local mGradient = Instance.new("UIGradient", main)
+mGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 30, 16)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(4, 12, 7)),
+}
+mGradient.Rotation = 135
+
+local glow = Instance.new("Frame", main)
+glow.BackgroundColor3 = Color3.fromRGB(0, 255, 130); glow.BorderSizePixel = 0
+glow.Size = UDim2.new(1, 0, 0, 2); glow.Position = UDim2.new(0, 0, 0, 44)
+local glowGrad = Instance.new("UIGradient", glow)
+glowGrad.Transparency = NumberSequence.new{
+    NumberSequenceKeypoint.new(0, 1),
+    NumberSequenceKeypoint.new(0.5, 0.2),
+    NumberSequenceKeypoint.new(1, 1),
+}
+task.spawn(function()
+    while glow.Parent do
+        glowGrad.Offset = Vector2.new(-1, 0)
+        TweenService:Create(glowGrad, TweenInfo.new(2.2, Enum.EasingStyle.Linear), {Offset = Vector2.new(1, 0)}):Play()
+        task.wait(2.2)
+    end
+end)
+
+local title = Instance.new("TextLabel", main)
+title.BackgroundTransparency = 1
+title.Size = UDim2.new(1, -90, 0, 44); title.Position = UDim2.new(0, 16, 0, 0)
+title.Font = Enum.Font.GothamBlack; title.Text = "⬛ K4 ⬛"
+title.TextSize = 22; title.TextColor3 = Color3.fromRGB(0, 255, 130)
+title.TextXAlignment = Enum.TextXAlignment.Left
+
+----------------------------------------------------------------
+-- Top buttons (close X + minimize circle)
+----------------------------------------------------------------
+local closeBtn = Instance.new("TextButton", main)
+closeBtn.AnchorPoint = Vector2.new(1, 0)
+closeBtn.Position = UDim2.new(1, -8, 0, 8)
+closeBtn.Size = UDim2.new(0, 28, 0, 28)
+closeBtn.BackgroundColor3 = Color3.fromRGB(0, 60, 30)
+closeBtn.BackgroundTransparency = 0.3; closeBtn.BorderSizePixel = 0
+closeBtn.Text = "X"; closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextColor3 = Color3.fromRGB(180, 255, 200); closeBtn.TextSize = 16
+closeBtn.AutoButtonColor = false
+Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 8)
+local closeStroke = Instance.new("UIStroke", closeBtn)
+closeStroke.Color = Color3.fromRGB(0, 200, 100); closeStroke.Transparency = 0.4
+closeBtn.MouseEnter:Connect(function() TweenService:Create(closeBtn, TweenInfo.new(0.15), {BackgroundTransparency = 0.1}):Play() end)
+closeBtn.MouseLeave:Connect(function() TweenService:Create(closeBtn, TweenInfo.new(0.15), {BackgroundTransparency = 0.3}):Play() end)
+
+-- circle minimize
+local minBtn = Instance.new("TextButton", main)
+minBtn.AnchorPoint = Vector2.new(1, 0)
+minBtn.Position = UDim2.new(1, -44, 0, 8)
+minBtn.Size = UDim2.new(0, 28, 0, 28)
+minBtn.BackgroundColor3 = Color3.fromRGB(0, 90, 45)
+minBtn.BackgroundTransparency = 0.2; minBtn.BorderSizePixel = 0
+minBtn.Text = ""; minBtn.AutoButtonColor = false
+Instance.new("UICorner", minBtn).CornerRadius = UDim.new(1, 0) -- full circle
+local minStroke = Instance.new("UIStroke", minBtn)
+minStroke.Color = Color3.fromRGB(0, 255, 130); minStroke.Transparency = 0.2; minStroke.Thickness = 1.4
+minBtn.MouseEnter:Connect(function() TweenService:Create(minBtn, TweenInfo.new(0.15), {BackgroundTransparency = 0}):Play() end)
+minBtn.MouseLeave:Connect(function() TweenService:Create(minBtn, TweenInfo.new(0.15), {BackgroundTransparency = 0.2}):Play() end)
+
+----------------------------------------------------------------
+-- Floating mini circle (when hidden)
+----------------------------------------------------------------
+local miniGui = Instance.new("ScreenGui")
+miniGui.Name = "K4Mini"; miniGui.ResetOnSpawn = false; miniGui.IgnoreGuiInset = true
+miniGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling; miniGui.DisplayOrder = 9001
+pcall(function() miniGui.Parent = guiParent end)
+if not miniGui.Parent then miniGui.Parent = PlayerGui end
+
+local miniBubble = Instance.new("TextButton", miniGui)
+miniBubble.AnchorPoint = Vector2.new(0, 0.5)
+miniBubble.Position = UDim2.new(0, 16, 0.5, 0)
+miniBubble.Size = UDim2.new(0, 44, 0, 44)
+miniBubble.BackgroundColor3 = Color3.fromRGB(0, 110, 55)
+miniBubble.BackgroundTransparency = 0.15; miniBubble.BorderSizePixel = 0
+miniBubble.AutoButtonColor = false
+miniBubble.Text = "K4"
+miniBubble.Font = Enum.Font.GothamBlack
+miniBubble.TextSize = 14
+miniBubble.TextColor3 = Color3.fromRGB(230, 255, 240)
+miniBubble.Visible = false
+Instance.new("UICorner", miniBubble).CornerRadius = UDim.new(1, 0)
+local miniStroke = Instance.new("UIStroke", miniBubble)
+miniStroke.Color = Color3.fromRGB(0, 255, 130); miniStroke.Thickness = 1.6; miniStroke.Transparency = 0.2
+
+-- pulse
+task.spawn(function()
+    while miniGui.Parent do
+        if miniBubble.Visible then
+            TweenService:Create(miniStroke, TweenInfo.new(0.7), {Transparency = 0.7}):Play(); task.wait(0.7)
+            TweenService:Create(miniStroke, TweenInfo.new(0.7), {Transparency = 0.15}):Play(); task.wait(0.7)
+        else
+            task.wait(0.2)
+        end
+    end
+end)
+
+-- mini bubble stays ALWAYS visible. clicking it toggles the main panel.
+miniBubble.Visible = true
+
+local function setHidden(hidden)
+    if hidden then
+        TweenService:Create(main, TweenInfo.new(0.2), {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1}):Play()
+        task.wait(0.22)
+        main.Visible = false
+        main.Size = UDim2.new(0, 520, 0, 360)
+        main.BackgroundTransparency = 0.25
+    else
+        main.Visible = true
+        main.Size = UDim2.new(0, 0, 0, 0)
+        main.BackgroundTransparency = 1
+        TweenService:Create(main, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 520, 0, 360), BackgroundTransparency = 0.25}):Play()
+    end
+end
+
+minBtn.MouseButton1Click:Connect(function() setHidden(true) end)
+miniBubble.MouseButton1Click:Connect(function()
+    setHidden(main.Visible)
+end)
+
+closeBtn.MouseButton1Click:Connect(function()
+    TweenService:Create(main, TweenInfo.new(0.2), {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1}):Play()
+    task.wait(0.22); gui:Destroy(); miniGui:Destroy()
+end)
+
+----------------------------------------------------------------
+-- Drag main + mini
+----------------------------------------------------------------
+local function makeDraggable(handle, target)
+    local dragging, dragStart, startPos
+    handle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true; dragStart = input.Position; startPos = target.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            target.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+end
+makeDraggable(title, main)
+makeDraggable(miniBubble, miniBubble)
+
+----------------------------------------------------------------
+-- Tab bar
+----------------------------------------------------------------
+local tabBar = Instance.new("Frame", main)
+tabBar.BackgroundTransparency = 1
+tabBar.Position = UDim2.new(0, 16, 0, 56); tabBar.Size = UDim2.new(1, -32, 0, 36)
+local tabLayout = Instance.new("UIListLayout", tabBar)
+tabLayout.FillDirection = Enum.FillDirection.Horizontal; tabLayout.Padding = UDim.new(0, 8)
+
+local pages, tabButtons = {}, {}
+
+local function makeTab(name)
+    local btn = Instance.new("TextButton", tabBar)
+    btn.Size = UDim2.new(0, 130, 1, 0); btn.BackgroundColor3 = Color3.fromRGB(8, 30, 14)
+    btn.BackgroundTransparency = 0.4; btn.BorderSizePixel = 0; btn.AutoButtonColor = false
+    btn.Font = Enum.Font.GothamBold; btn.Text = name; btn.TextSize = 15
+    btn.TextColor3 = Color3.fromRGB(160, 230, 180)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
+    local s = Instance.new("UIStroke", btn); s.Color = Color3.fromRGB(0, 200, 100); s.Transparency = 0.6
+
+    local page = Instance.new("Frame", main)
+    page.Position = UDim2.new(0, 16, 0, 100); page.Size = UDim2.new(1, -32, 1, -116)
+    page.BackgroundColor3 = Color3.fromRGB(4, 12, 7); page.BackgroundTransparency = 0.4
+    page.BorderSizePixel = 0; page.Visible = false
+    Instance.new("UICorner", page).CornerRadius = UDim.new(0, 10)
+    local ps = Instance.new("UIStroke", page); ps.Color = Color3.fromRGB(0, 180, 90); ps.Transparency = 0.7
+
+    pages[name] = page; tabButtons[name] = btn
+    btn.MouseButton1Click:Connect(function()
+        for n, p in pairs(pages) do p.Visible = (n == name) end
+        for n, b in pairs(tabButtons) do
+            if n == name then
+                TweenService:Create(b, TweenInfo.new(0.15), {BackgroundTransparency = 0.1, TextColor3 = Color3.fromRGB(0, 255, 130)}):Play()
+            else
+                TweenService:Create(b, TweenInfo.new(0.15), {BackgroundTransparency = 0.4, TextColor3 = Color3.fromRGB(160, 230, 180)}):Play()
+            end
+        end
+    end)
+    return page, btn
+end
+
+local copyPage    = makeTab("نسخ")
+local controlPage = makeTab("تحكم")
+
+----------------------------------------------------------------
+-- Page: نسخ
+----------------------------------------------------------------
+local selectedName = nil
+
+local playersBar = Instance.new("ScrollingFrame", copyPage)
+playersBar.Position = UDim2.new(0, 10, 0, 10); playersBar.Size = UDim2.new(1, -20, 0, 46)
+playersBar.BackgroundColor3 = Color3.fromRGB(2, 10, 5); playersBar.BackgroundTransparency = 0.5
+playersBar.BorderSizePixel = 0; playersBar.ScrollBarThickness = 3
+playersBar.ScrollingDirection = Enum.ScrollingDirection.X
+playersBar.AutomaticCanvasSize = Enum.AutomaticSize.X
+playersBar.CanvasSize = UDim2.new(0, 0, 0, 0)
+playersBar.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 130)
+Instance.new("UICorner", playersBar).CornerRadius = UDim.new(0, 8)
+local pbLayout = Instance.new("UIListLayout", playersBar)
+pbLayout.FillDirection = Enum.FillDirection.Horizontal; pbLayout.Padding = UDim.new(0, 6)
+pbLayout.SortOrder = Enum.SortOrder.LayoutOrder; pbLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+local pbPad = Instance.new("UIPadding", playersBar)
+pbPad.PaddingLeft = UDim.new(0, 8); pbPad.PaddingRight = UDim.new(0, 8)
+
+local selectedLabel = Instance.new("TextLabel", copyPage)
+selectedLabel.BackgroundTransparency = 1
+selectedLabel.Position = UDim2.new(0, 10, 0, 60); selectedLabel.Size = UDim2.new(1, -20, 0, 20)
+selectedLabel.Font = Enum.Font.GothamSemibold; selectedLabel.TextSize = 13
+selectedLabel.TextColor3 = Color3.fromRGB(180, 255, 200)
+selectedLabel.TextXAlignment = Enum.TextXAlignment.Left
+selectedLabel.Text = "اختر لاعب من القائمة"
+
+local playerChips = {}
+local function refreshPlayers()
+    for _, c in ipairs(playersBar:GetChildren()) do
+        if c:IsA("TextButton") then c:Destroy() end
+    end
+    playerChips = {}
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer then
+            local chip = Instance.new("TextButton", playersBar)
+            chip.Size = UDim2.new(0, 0, 1, -8); chip.AutomaticSize = Enum.AutomaticSize.X
+            chip.BackgroundColor3 = Color3.fromRGB(10, 35, 18); chip.BackgroundTransparency = 0.2
+            chip.BorderSizePixel = 0; chip.AutoButtonColor = false
+            chip.Font = Enum.Font.GothamBold; chip.Text = "  " .. p.Name .. "  "
+            chip.TextSize = 13; chip.TextColor3 = Color3.fromRGB(200, 255, 215)
+            Instance.new("UICorner", chip).CornerRadius = UDim.new(0, 8)
+            local cs = Instance.new("UIStroke", chip); cs.Color = Color3.fromRGB(0, 200, 100); cs.Transparency = 0.5
+            chip.MouseButton1Click:Connect(function()
+                selectedName = p.Name
+                selectedLabel.Text = "تم اختيار: " .. p.Name
+                for _, ch in pairs(playerChips) do
+                    TweenService:Create(ch, TweenInfo.new(0.12), {BackgroundColor3 = Color3.fromRGB(10, 35, 18)}):Play()
+                end
+                TweenService:Create(chip, TweenInfo.new(0.12), {BackgroundColor3 = Color3.fromRGB(0, 120, 60)}):Play()
+            end)
+            chip.MouseEnter:Connect(function()
+                if selectedName ~= p.Name then
+                    TweenService:Create(chip, TweenInfo.new(0.12), {BackgroundTransparency = 0.05}):Play()
+                end
+            end)
+            chip.MouseLeave:Connect(function()
+                if selectedName ~= p.Name then
+                    TweenService:Create(chip, TweenInfo.new(0.12), {BackgroundTransparency = 0.2}):Play()
+                end
+            end)
+            playerChips[p.Name] = chip
+        end
+    end
+end
+refreshPlayers()
+Players.PlayerAdded:Connect(refreshPlayers)
+Players.PlayerRemoving:Connect(refreshPlayers)
+
+local function makeBigBtn(parent, text, posY, color1, color2)
+    color1 = color1 or Color3.fromRGB(0, 150, 75)
+    color2 = color2 or Color3.fromRGB(0, 90, 45)
+    local b = Instance.new("TextButton", parent)
+    b.Position = UDim2.new(0, 10, 0, posY); b.Size = UDim2.new(1, -20, 0, 46)
+    b.BackgroundColor3 = Color3.fromRGB(0, 110, 55); b.BackgroundTransparency = 0.15
+    b.BorderSizePixel = 0; b.AutoButtonColor = false
+    b.Font = Enum.Font.GothamBlack; b.Text = text; b.TextSize = 16
+    b.TextColor3 = Color3.fromRGB(230, 255, 240)
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 10)
+    local s = Instance.new("UIStroke", b); s.Color = Color3.fromRGB(0, 255, 130); s.Transparency = 0.3
+    local g = Instance.new("UIGradient", b)
+    g.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, color1),
+        ColorSequenceKeypoint.new(1, color2),
+    }
+    g.Rotation = 90
+    b.MouseEnter:Connect(function() TweenService:Create(b, TweenInfo.new(0.15), {BackgroundTransparency = 0}):Play() end)
+    b.MouseLeave:Connect(function() TweenService:Create(b, TweenInfo.new(0.15), {BackgroundTransparency = 0.15}):Play() end)
+    return b
+end
+
+local copySpamBtn   = makeBigBtn(copyPage, "نسخ سبام", 88)
+local copyStrongBtn = makeBigBtn(copyPage, "نسخ قوي سبام", 142)
+local stopBtn       = makeBigBtn(copyPage, "إيقاف السبام", 196,
+    Color3.fromRGB(170, 30, 30), Color3.fromRGB(110, 15, 15))
+
+local statusLbl = Instance.new("TextLabel", copyPage)
+statusLbl.BackgroundTransparency = 1
+statusLbl.Position = UDim2.new(0, 10, 1, -28); statusLbl.Size = UDim2.new(1, -20, 0, 22)
+statusLbl.Font = Enum.Font.GothamSemibold; statusLbl.TextSize = 13
+statusLbl.TextColor3 = Color3.fromRGB(150, 220, 170); statusLbl.Text = ""
+
+local function setStatus(txt, persistent)
+    statusLbl.Text = txt; statusLbl.TextTransparency = 0
+    if not persistent then
+        task.delay(2.5, function()
+            if statusLbl.Text == txt then
+                TweenService:Create(statusLbl, TweenInfo.new(0.6), {TextTransparency = 1}):Play()
+            end
+        end)
+    end
+end
+
+-- Build single-message spam strings
+local function buildSpamA(name)
+    local block = string.format(";logs %s ;clogs %s ;nv %s ;re %s ;res %s",
+        name, name, name, name, name)
+    local parts = {}
+    for i = 1, 5 do parts[i] = block end
+    return table.concat(parts, " ")
+end
+
+local function buildSpamB(name)
+    local cmds = {
+        ";apparate %s inf",";fling %s",";jp %s inf",";jc %s",
+        ";ice %s",";emotes %s",";phase %s",";cmdbar %s",
+        ";nv %s",";jump %s",";re %s",";res %s",";kill %s",";ping %s",
+    }
+    local out = {}
+    for i, fmt in ipairs(cmds) do out[i] = string.format(fmt, name) end
+    return table.concat(out, " ")
+end
+
+----------------------------------------------------------------
+-- Remotes
+----------------------------------------------------------------
+local chatRemote, hdRemote
+pcall(function()
+    local re = ReplicatedStorage:FindFirstChild("RemoteEvents")
+    if re then chatRemote = re:FindFirstChild("ChatEvent") end
+end)
+pcall(function()
+    local hd = ReplicatedStorage:FindFirstChild("HDAdminHDClient")
+    if hd then
+        local sig = hd:FindFirstChild("Signals")
+        if sig then hdRemote = sig:FindFirstChild("RequestCommandModification") end
+    end
+end)
+
+local function sendOnce(message)
+    if chatRemote then pcall(function() chatRemote:FireServer(message) end) end
+    if hdRemote then pcall(function() hdRemote:InvokeServer(message) end) end
+end
+
+local function copyText(t)
+    local ok = false
+    if setclipboard then ok = pcall(setclipboard, t)
+    elseif toclipboard then ok = pcall(toclipboard, t)
+    elseif type(syn) == "table" and syn.write_clipboard then ok = pcall(syn.write_clipboard, t) end
+    return ok
+end
+
+----------------------------------------------------------------
+-- Spam loop control
+----------------------------------------------------------------
+local spamRunning = false
+local spamThread
+
+local function stopSpam()
+    spamRunning = false
+    spamThread = nil
+    setStatus("تم إيقاف السبام")
+end
+
+local function startSpam(message)
+    if spamRunning then stopSpam(); task.wait(0.05) end
+    spamRunning = true
+    setStatus("السبام شغال... اضغط إيقاف للايقاف", true)
+    spamThread = task.spawn(function()
+        while spamRunning do
+            sendOnce(message)
+            task.wait(0.05)
+        end
+    end)
+end
+
+copySpamBtn.MouseButton1Click:Connect(function()
+    if not selectedName then setStatus("اختر لاعب اولا") return end
+    local msg = buildSpamA(selectedName)
+    startSpam(msg)
+end)
+
+copyStrongBtn.MouseButton1Click:Connect(function()
+    if not selectedName then setStatus("اختر لاعب اولا") return end
+    local msg = buildSpamB(selectedName)
+    startSpam(msg)
+end)
+
+stopBtn.MouseButton1Click:Connect(function() stopSpam() end)
+
+----------------------------------------------------------------
+-- Page: تحكم
+----------------------------------------------------------------
+local ctrlInfo = Instance.new("TextLabel", controlPage)
+ctrlInfo.BackgroundTransparency = 1
+ctrlInfo.Position = UDim2.new(0, 10, 0, 10); ctrlInfo.Size = UDim2.new(1, -20, 0, 24)
+ctrlInfo.Font = Enum.Font.GothamBold; ctrlInfo.Text = "لوحة التحكم"
+ctrlInfo.TextSize = 16; ctrlInfo.TextColor3 = Color3.fromRGB(0, 255, 130)
+ctrlInfo.TextXAlignment = Enum.TextXAlignment.Left
+
+-- scrollable area for control buttons (since we now have many)
+local ctrlScroll = Instance.new("ScrollingFrame", controlPage)
+ctrlScroll.Position = UDim2.new(0, 0, 0, 40)
+ctrlScroll.Size = UDim2.new(1, 0, 1, -70)
+ctrlScroll.BackgroundTransparency = 1
+ctrlScroll.BorderSizePixel = 0
+ctrlScroll.ScrollBarThickness = 4
+ctrlScroll.ScrollBarImageColor3 = Color3.fromRGB(0, 200, 100)
+ctrlScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+ctrlScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+
+local loadBtn      = makeBigBtn(ctrlScroll, "تحكم الراديو", 4)
+local hideBtn      = makeBigBtn(ctrlScroll, "إخفاء رسائل السبام", 58)
+local spinStartBtn = makeBigBtn(ctrlScroll, "تشغيل الدوران", 112)
+local spinStopBtn  = makeBigBtn(ctrlScroll, "إيقاف الدوران", 166,
+    Color3.fromRGB(170, 30, 30), Color3.fromRGB(110, 15, 15))
+local logsBtn      = makeBigBtn(ctrlScroll, "حماية من logs / clogs", 220,
+    Color3.fromRGB(0, 130, 180), Color3.fromRGB(0, 80, 120))
+
+local ctrlStatus = Instance.new("TextLabel", controlPage)
+ctrlStatus.BackgroundTransparency = 1
+ctrlStatus.Position = UDim2.new(0, 10, 1, -28); ctrlStatus.Size = UDim2.new(1, -20, 0, 22)
+ctrlStatus.Font = Enum.Font.GothamSemibold; ctrlStatus.TextSize = 13
+ctrlStatus.TextColor3 = Color3.fromRGB(150, 220, 170); ctrlStatus.Text = ""
+ctrlStatus.TextXAlignment = Enum.TextXAlignment.Left
+
+local function showBigNotice(text)
+    local nGui = Instance.new("ScreenGui")
+    nGui.Name = "K4Notice"; nGui.ResetOnSpawn = false; nGui.IgnoreGuiInset = true
+    nGui.DisplayOrder = 9998
+    pcall(function() nGui.Parent = guiParent end)
+    if not nGui.Parent then nGui.Parent = PlayerGui end
+
+    local nFrame = Instance.new("Frame", nGui)
+    nFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    nFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    nFrame.Size = UDim2.new(0, 520, 0, 220)
+    nFrame.BackgroundColor3 = Color3.fromRGB(8, 18, 10)
+    nFrame.BackgroundTransparency = 0.1
+    nFrame.BorderSizePixel = 0
+    Instance.new("UICorner", nFrame).CornerRadius = UDim.new(0, 16)
+    local nStroke = Instance.new("UIStroke", nFrame)
+    nStroke.Color = Color3.fromRGB(0, 255, 130); nStroke.Thickness = 2; nStroke.Transparency = 0.1
+
+    local title = Instance.new("TextLabel", nFrame)
+    title.BackgroundTransparency = 1
+    title.Position = UDim2.new(0, 12, 0, 14); title.Size = UDim2.new(1, -24, 0, 32)
+    title.Font = Enum.Font.GothamBlack; title.Text = "ملاحظة مهمة"
+    title.TextSize = 22; title.TextColor3 = Color3.fromRGB(0, 255, 130)
+
+    local body = Instance.new("TextLabel", nFrame)
+    body.BackgroundTransparency = 1
+    body.Position = UDim2.new(0, 16, 0, 56); body.Size = UDim2.new(1, -32, 1, -116)
+    body.Font = Enum.Font.GothamSemibold; body.Text = text
+    body.TextSize = 20; body.TextColor3 = Color3.fromRGB(230, 255, 235)
+    body.TextWrapped = true; body.TextYAlignment = Enum.TextYAlignment.Top
+
+    local okBtn = Instance.new("TextButton", nFrame)
+    okBtn.AnchorPoint = Vector2.new(0.5, 1)
+    okBtn.Position = UDim2.new(0.5, 0, 1, -14); okBtn.Size = UDim2.new(0, 160, 0, 38)
+    okBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100); okBtn.BorderSizePixel = 0
+    okBtn.Font = Enum.Font.GothamBold; okBtn.Text = "تمام"
+    okBtn.TextSize = 18; okBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+    Instance.new("UICorner", okBtn).CornerRadius = UDim.new(0, 10)
+
+    okBtn.MouseButton1Click:Connect(function() pcall(function() nGui:Destroy() end) end)
+    task.delay(12, function() pcall(function() nGui:Destroy() end) end)
+end
+
+local controlLoaded = false
+loadBtn.MouseButton1Click:Connect(function()
+    showBigNotice("البس الراديو يلا يصير\n")
+    if controlLoaded then ctrlStatus.Text = "تحكم الراديو مفعل بالفعل" return end
+    ctrlStatus.Text = "جاري تشغيل الراديو..."
+    task.spawn(function()
+        local ok, err = pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Shhd-code/X/refs/heads/main/README.md"))()
+        end)
+        if ok then controlLoaded = true; ctrlStatus.Text = "تم تشغيل تحكم الراديو"
+        else ctrlStatus.Text = "فشل التشغيل: " .. tostring(err):sub(1, 60) end
+    end)
+end)
+
+----------------------------------------------------------------
+-- Anti notification (activated by hide button)
+----------------------------------------------------------------
+local antiActive = false
+local antiConnection
+local function hideSystemNotifications(obj)
+    if obj:IsA("TextLabel") or obj:IsA("TextBox") then
+        local ok, txt = pcall(function() return obj.Text end)
+        if ok and txt and (txt:find("Sending commands") or txt:find("CommandLimit")) then
+            local frame = obj.Parent
+            if frame then
+                pcall(function() frame.Visible = false; frame:Destroy() end)
+            end
+        end
+    end
+end
+
+hideBtn.MouseButton1Click:Connect(function()
+    if antiActive then
+        ctrlStatus.Text = "حماية الواجهة مفعلة بالفعل"
+        return
+    end
+    antiActive = true
+    antiConnection = PlayerGui.DescendantAdded:Connect(function(d)
+        task.wait(0.01)
+        hideSystemNotifications(d)
+    end)
+    task.spawn(function()
+        for _, v in ipairs(PlayerGui:GetDescendants()) do
+            hideSystemNotifications(v)
+        end
+    end)
+    ctrlStatus.Text = "تم تفعيل اخفاء رسائل السبام"
+    print("تم تفعيل حماية الواجهة.. لن تظهر رسائل System بعد الآن.")
+end)
+
+----------------------------------------------------------------
+-- Spin (دوران)
+----------------------------------------------------------------
+local spinning = false
+local spinSpeed = 50
+local RunService = game:GetService("RunService")
+
+RunService.Heartbeat:Connect(function()
+    if spinning then
+        local char = LocalPlayer.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            char.HumanoidRootPart.CFrame = char.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(spinSpeed), 0)
+        end
+    end
+end)
+
+spinStartBtn.MouseButton1Click:Connect(function()
+    spinning = true
+    ctrlStatus.Text = "تم تشغيل الدوران"
+end)
+spinStopBtn.MouseButton1Click:Connect(function()
+    spinning = false
+    ctrlStatus.Text = "تم إيقاف الدوران"
+end)
+
+----------------------------------------------------------------
+-- Logs / clogs protection
+----------------------------------------------------------------
+local logsActive = false
+local function scanAndDestroy(obj)
+    if obj:IsA("ScreenGui") or obj:IsA("Frame") then
+        local nm = obj.Name:lower()
+        if nm:find("log") or nm:find("admin") or nm:find("command") then
+            pcall(function() obj:Destroy() end)
+        end
+    end
+end
+
+logsBtn.MouseButton1Click:Connect(function()
+    if logsActive then
+        ctrlStatus.Text = "حماية logs مفعلة بالفعل"
+        return
+    end
+    logsActive = true
+    for _, g in ipairs(PlayerGui:GetDescendants()) do
+        scanAndDestroy(g)
+    end
+    PlayerGui.DescendantAdded:Connect(function(d)
+        scanAndDestroy(d)
+    end)
+    task.spawn(function()
+        while logsActive and task.wait(0.1) do
+            for _, g in ipairs(PlayerGui:GetChildren()) do
+                if g:IsA("ScreenGui") and (g.Name:find("Log") or g.Name:find("Admin")) then
+                    pcall(function() g.Enabled = false; g:Destroy() end)
+                end
+            end
+        end
+    end)
+    ctrlStatus.Text = "تم تفعيل حماية logs / clogs"
+    print("تم تفعيل الحظر النهائي لقائمة اللوقز")
+end)
+
+----------------------------------------------------------------
+-- Default tab
+----------------------------------------------------------------
+pages["نسخ"].Visible = true
+TweenService:Create(tabButtons["نسخ"], TweenInfo.new(0.15), {BackgroundTransparency = 0.1, TextColor3 = Color3.fromRGB(0, 255, 130)}):Play()
+
+print("[K4] Loaded")
