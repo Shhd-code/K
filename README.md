@@ -515,14 +515,16 @@ ctrlScroll.ScrollBarImageColor3 = Color3.fromRGB(0, 200, 100)
 ctrlScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
 ctrlScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 
-local loadBtn      = makeBigBtn(ctrlScroll, "تحكم الراديو", 4)
-local hideBtn      = makeBigBtn(ctrlScroll, "إخفاء رسائل السبام", 58)
-local spinStartBtn = makeBigBtn(ctrlScroll, "تشغيل الدوران", 112)
-local spinStopBtn  = makeBigBtn(ctrlScroll, "إيقاف الدوران", 166,
+local dancesBtn    = makeBigBtn(ctrlScroll, "رقصات", 4,
+    Color3.fromRGB(230, 140, 30), Color3.fromRGB(160, 90, 10))
+local loadBtn      = makeBigBtn(ctrlScroll, "تحكم الراديو", 58)
+local hideBtn      = makeBigBtn(ctrlScroll, "إخفاء رسائل السبام", 112)
+local spinStartBtn = makeBigBtn(ctrlScroll, "تشغيل الدوران", 166)
+local spinStopBtn  = makeBigBtn(ctrlScroll, "إيقاف الدوران", 220,
     Color3.fromRGB(170, 30, 30), Color3.fromRGB(110, 15, 15))
-local logsBtn      = makeBigBtn(ctrlScroll, "حماية من logs / clogs", 220,
+local logsBtn      = makeBigBtn(ctrlScroll, "حماية من logs / clogs", 274,
     Color3.fromRGB(0, 130, 180), Color3.fromRGB(0, 80, 120))
-local titleBtn     = makeBigBtn(ctrlScroll, "تحكم في اللقب", 274,
+local titleBtn     = makeBigBtn(ctrlScroll, "تحكم في اللقب", 328,
     Color3.fromRGB(150, 60, 200), Color3.fromRGB(95, 30, 140))
 
 local ctrlStatus = Instance.new("TextLabel", controlPage)
@@ -574,6 +576,19 @@ local function showBigNotice(text)
     okBtn.MouseButton1Click:Connect(function() pcall(function() nGui:Destroy() end) end)
     task.delay(12, function() pcall(function() nGui:Destroy() end) end)
 end
+
+local dancesLoaded = false
+dancesBtn.MouseButton1Click:Connect(function()
+    if dancesLoaded then ctrlStatus.Text = "الرقصات مفعلة بالفعل" return end
+    ctrlStatus.Text = "جاري تشغيل الرقصات..."
+    task.spawn(function()
+        local ok, err = pcall(function()
+            loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-ARES-EMOTE-HUB-148804"))()
+        end)
+        if ok then dancesLoaded = true; ctrlStatus.Text = "تم تشغيل الرقصات"
+        else ctrlStatus.Text = "فشل: " .. tostring(err):sub(1, 60) end
+    end)
+end)
 
 local controlLoaded = false
 loadBtn.MouseButton1Click:Connect(function()
