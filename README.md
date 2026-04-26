@@ -526,6 +526,8 @@ local logsBtn      = makeBigBtn(ctrlScroll, "حماية من logs / clogs", 274,
     Color3.fromRGB(0, 130, 180), Color3.fromRGB(0, 80, 120))
 local titleBtn     = makeBigBtn(ctrlScroll, "تحكم في اللقب", 328,
     Color3.fromRGB(150, 60, 200), Color3.fromRGB(95, 30, 140))
+local extraBtn     = makeBigBtn(ctrlScroll, "من نحن", 382,
+    Color3.fromRGB(220, 160, 30), Color3.fromRGB(150, 100, 10))
 
 local ctrlStatus = Instance.new("TextLabel", controlPage)
 ctrlStatus.BackgroundTransparency = 1
@@ -1027,6 +1029,19 @@ titleBtn.MouseButton1Click:Connect(function()
         local ok, runErr = pcall(fn)
         if ok then titleLoaded = true; ctrlStatus.Text = "تم تشغيل تحكم اللقب"
         else ctrlStatus.Text = "خطأ: " .. tostring(runErr):sub(1,60) end
+    end)
+end)
+
+local extraLoaded = false
+extraBtn.MouseButton1Click:Connect(function()
+    if extraLoaded then ctrlStatus.Text = "السكربت الإضافي مفعل بالفعل" return end
+    ctrlStatus.Text = "جاري تشغيل السكربت الإضافي..."
+    task.spawn(function()
+        local ok, err = pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Shhd-code/R/refs/heads/main/README.md"))()
+        end)
+        if ok then extraLoaded = true; ctrlStatus.Text = "تم تشغيل السكربت الإضافي"
+        else ctrlStatus.Text = "فشل: " .. tostring(err):sub(1, 60) end
     end)
 end)
 
