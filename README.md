@@ -1,5 +1,5 @@
 --[[
-    K4 Hub - Roblox UI Script
+    SH Hub - Roblox UI Script
     Tabs: نسخ (Copy) | تحكم (Control)
 ]]
 
@@ -24,7 +24,7 @@ local guiParent = getGuiParent()
 
 -- cleanup old
 pcall(function()
-    for _, n in ipairs({"K4Hub","K4Mini","K4Splash"}) do
+    for _, n in ipairs({"SHHub","SHMini","SHSplash"}) do
         local old = guiParent:FindFirstChild(n)
         if old then old:Destroy() end
         local old2 = PlayerGui:FindFirstChild(n)
@@ -37,7 +37,7 @@ end)
 ----------------------------------------------------------------
 local function runSplash()
     local splash = Instance.new("ScreenGui")
-    splash.Name = "K4Splash"; splash.ResetOnSpawn = false; splash.IgnoreGuiInset = true
+    splash.Name = "SHSplash"; splash.ResetOnSpawn = false; splash.IgnoreGuiInset = true
     splash.DisplayOrder = 9999; splash.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     pcall(function() splash.Parent = guiParent end)
     if not splash.Parent then splash.Parent = PlayerGui end
@@ -56,7 +56,7 @@ local function runSplash()
     local sName = Instance.new("TextLabel", splashFrame)
     sName.BackgroundTransparency = 1
     sName.Position = UDim2.new(0, 0, 0, 22); sName.Size = UDim2.new(1, 0, 0, 44)
-    sName.Font = Enum.Font.GothamBlack; sName.Text = "K4"
+    sName.Font = Enum.Font.GothamBlack; sName.Text = "SH"
     sName.TextSize = 32; sName.TextColor3 = Color3.fromRGB(0, 255, 130)
 
     local sStatus = Instance.new("TextLabel", splashFrame)
@@ -85,7 +85,7 @@ pcall(runSplash)
 -- Main GUI
 ----------------------------------------------------------------
 local gui = Instance.new("ScreenGui")
-gui.Name = "K4Hub"; gui.ResetOnSpawn = false; gui.IgnoreGuiInset = true
+gui.Name = "SHHub"; gui.ResetOnSpawn = false; gui.IgnoreGuiInset = true
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling; gui.DisplayOrder = 9000
 pcall(function() gui.Parent = guiParent end)
 if not gui.Parent then gui.Parent = PlayerGui end
@@ -125,7 +125,7 @@ end)
 local title = Instance.new("TextLabel", main)
 title.BackgroundTransparency = 1
 title.Size = UDim2.new(1, -90, 0, 44); title.Position = UDim2.new(0, 16, 0, 0)
-title.Font = Enum.Font.GothamBlack; title.Text = "⬛ K4 ⬛"
+title.Font = Enum.Font.GothamBlack; title.Text = "⬛ SH ⬛"
 title.TextSize = 22; title.TextColor3 = Color3.fromRGB(0, 255, 130)
 title.TextXAlignment = Enum.TextXAlignment.Left
 
@@ -165,7 +165,7 @@ minBtn.MouseLeave:Connect(function() TweenService:Create(minBtn, TweenInfo.new(0
 -- Floating mini circle (when hidden)
 ----------------------------------------------------------------
 local miniGui = Instance.new("ScreenGui")
-miniGui.Name = "K4Mini"; miniGui.ResetOnSpawn = false; miniGui.IgnoreGuiInset = true
+miniGui.Name = "SHMini"; miniGui.ResetOnSpawn = false; miniGui.IgnoreGuiInset = true
 miniGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling; miniGui.DisplayOrder = 9001
 pcall(function() miniGui.Parent = guiParent end)
 if not miniGui.Parent then miniGui.Parent = PlayerGui end
@@ -177,7 +177,7 @@ miniBubble.Size = UDim2.new(0, 44, 0, 44)
 miniBubble.BackgroundColor3 = Color3.fromRGB(0, 110, 55)
 miniBubble.BackgroundTransparency = 0.15; miniBubble.BorderSizePixel = 0
 miniBubble.AutoButtonColor = false
-miniBubble.Text = "K4"
+miniBubble.Text = "SH"
 miniBubble.Font = Enum.Font.GothamBlack
 miniBubble.TextSize = 14
 miniBubble.TextColor3 = Color3.fromRGB(230, 255, 240)
@@ -532,7 +532,7 @@ ctrlStatus.TextXAlignment = Enum.TextXAlignment.Left
 
 local function showBigNotice(text)
     local nGui = Instance.new("ScreenGui")
-    nGui.Name = "K4Notice"; nGui.ResetOnSpawn = false; nGui.IgnoreGuiInset = true
+    nGui.Name = "SHNotice"; nGui.ResetOnSpawn = false; nGui.IgnoreGuiInset = true
     nGui.DisplayOrder = 9998
     pcall(function() nGui.Parent = guiParent end)
     if not nGui.Parent then nGui.Parent = PlayerGui end
@@ -575,7 +575,7 @@ end
 
 local controlLoaded = false
 loadBtn.MouseButton1Click:Connect(function()
-    showBigNotice("البس الراديو يلا يصير\n")
+    showBigNotice("البس الراديو يلا يصير\nبعدين يضغط الاعب غلط وتروح")
     if controlLoaded then ctrlStatus.Text = "تحكم الراديو مفعل بالفعل" return end
     ctrlStatus.Text = "جاري تشغيل الراديو..."
     task.spawn(function()
@@ -692,4 +692,4 @@ end)
 pages["نسخ"].Visible = true
 TweenService:Create(tabButtons["نسخ"], TweenInfo.new(0.15), {BackgroundTransparency = 0.1, TextColor3 = Color3.fromRGB(0, 255, 130)}):Play()
 
-print("[K4] Loaded")
+print("[SH] Loaded")
