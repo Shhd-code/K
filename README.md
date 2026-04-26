@@ -575,7 +575,7 @@ end
 
 local controlLoaded = false
 loadBtn.MouseButton1Click:Connect(function()
-    showBigNotice("البس الراديو يلا يصير\nبعدين يضغط الاعب غلط وتروح")
+    showBigNotice("البس الراديو يلا يصير\n")
     if controlLoaded then ctrlStatus.Text = "تحكم الراديو مفعل بالفعل" return end
     ctrlStatus.Text = "جاري تشغيل الراديو..."
     task.spawn(function()
