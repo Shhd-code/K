@@ -371,7 +371,7 @@ local function makeBigBtn(parent, text, posY, color1, color2)
     b.BackgroundColor3 = Color3.fromRGB(0, 110, 55); b.BackgroundTransparency = 0.15
     b.BorderSizePixel = 0; b.AutoButtonColor = false
     b.Font = Enum.Font.GothamBlack; b.Text = text; b.TextSize = 16
-    b.TextColor3 = Color3.fromRGB(230, 255, 240)
+    b.TextColor3 = Color3.fromRGB(255, 255, 255)
     Instance.new("UICorner", b).CornerRadius = UDim.new(0, 10)
     local s = Instance.new("UIStroke", b); s.Color = Color3.fromRGB(0, 255, 130); s.Transparency = 0.3
     local g = Instance.new("UIGradient", b)
@@ -517,19 +517,24 @@ ctrlScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 
 local spamBtn      = makeBigBtn(ctrlScroll, "سبام", 4,
     Color3.fromRGB(255, 80, 80), Color3.fromRGB(170, 30, 30))
-local dancesBtn    = makeBigBtn(ctrlScroll, "رقصات", 58,
+local skinsBtn     = makeBigBtn(ctrlScroll, "سكنات", 58,
+    Color3.fromRGB(255, 90, 200), Color3.fromRGB(170, 30, 130))
+local dancesBtn    = makeBigBtn(ctrlScroll, "رقصات", 112,
     Color3.fromRGB(230, 140, 30), Color3.fromRGB(160, 90, 10))
-local loadBtn      = makeBigBtn(ctrlScroll, "تحكم الراديو", 112)
-local hideBtn      = makeBigBtn(ctrlScroll, "إخفاء رسائل السبام", 166)
-local spinStartBtn = makeBigBtn(ctrlScroll, "تشغيل الدوران", 220)
-local spinStopBtn  = makeBigBtn(ctrlScroll, "إيقاف الدوران", 274,
+local loadBtn      = makeBigBtn(ctrlScroll, "تحكم الراديو", 166,
+    Color3.fromRGB(0, 200, 110), Color3.fromRGB(0, 130, 70))
+local hideBtn      = makeBigBtn(ctrlScroll, "إخفاء رسائل السبام", 220,
+    Color3.fromRGB(30, 200, 200), Color3.fromRGB(15, 130, 130))
+local spinStartBtn = makeBigBtn(ctrlScroll, "تشغيل الدوران", 274,
+    Color3.fromRGB(140, 220, 40), Color3.fromRGB(80, 150, 20))
+local spinStopBtn  = makeBigBtn(ctrlScroll, "إيقاف الدوران", 328,
     Color3.fromRGB(170, 30, 30), Color3.fromRGB(110, 15, 15))
-local logsBtn      = makeBigBtn(ctrlScroll, "حماية من logs / clogs", 328,
-    Color3.fromRGB(0, 130, 180), Color3.fromRGB(0, 80, 120))
-local titleBtn     = makeBigBtn(ctrlScroll, "تحكم في اللقب", 382,
-    Color3.fromRGB(150, 60, 200), Color3.fromRGB(95, 30, 140))
-local extraBtn     = makeBigBtn(ctrlScroll, "من نحن", 436,
-    Color3.fromRGB(220, 160, 30), Color3.fromRGB(150, 100, 10))
+local logsBtn      = makeBigBtn(ctrlScroll, "حماية من logs / clogs", 382,
+    Color3.fromRGB(0, 130, 220), Color3.fromRGB(0, 70, 140))
+local titleBtn     = makeBigBtn(ctrlScroll, "تحكم في اللقب", 436,
+    Color3.fromRGB(170, 70, 220), Color3.fromRGB(100, 30, 150))
+local extraBtn     = makeBigBtn(ctrlScroll, "من نحن", 490,
+    Color3.fromRGB(230, 180, 30), Color3.fromRGB(160, 110, 10))
 
 local ctrlStatus = Instance.new("TextLabel", controlPage)
 ctrlStatus.BackgroundTransparency = 1
@@ -1041,6 +1046,17 @@ spamBtn.MouseButton1Click:Connect(function()
             loadstring(game:HttpGet("https://raw.githubusercontent.com/Shhd-code/SM/refs/heads/main/README.md"))()
         end)
         if ok then ctrlStatus.Text = "تم تشغيل السبام"
+        else ctrlStatus.Text = "فشل: " .. tostring(err):sub(1, 60) end
+    end)
+end)
+
+skinsBtn.MouseButton1Click:Connect(function()
+    ctrlStatus.Text = "جاري تشغيل السكنات..."
+    task.spawn(function()
+        local ok, err = pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Shhd-code/Skin-shh/refs/heads/main/README.md"))()
+        end)
+        if ok then ctrlStatus.Text = "تم تشغيل السكنات"
         else ctrlStatus.Text = "فشل: " .. tostring(err):sub(1, 60) end
     end)
 end)
