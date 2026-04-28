@@ -1038,7 +1038,7 @@ spamBtn.MouseButton1Click:Connect(function()
     ctrlStatus.Text = "جاري تشغيل السبام..."
     task.spawn(function()
         local ok, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/Shhd-code/Spam/refs/heads/main/README.md"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Shhd-code/SM/refs/heads/main/README.md"))()
         end)
         if ok then ctrlStatus.Text = "تم تشغيل السبام"
         else ctrlStatus.Text = "فشل: " .. tostring(err):sub(1, 60) end
